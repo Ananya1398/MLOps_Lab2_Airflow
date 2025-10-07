@@ -10,6 +10,20 @@ The pipeline automatically reads, cleans, trains, and evaluates a machine learni
 - Python 3.11+
 - pip
 - virtualenv
+---
+## DAG Components
+
+The **health_data_training_dag** defines a machine learning workflow with the following tasks:
+
+| Task ID | Operator Type | Description |
+|----------|----------------|-------------|
+| **start** | `EmptyOperator` | Initializes the workflow. |
+| **clean_data** | `PythonOperator` | Reads raw CSV (`health_data.csv`), removes duplicates and missing values, and saves the cleaned file as `clean_health_data.csv`. |
+| **train_model** | `PythonOperator` | Trains a classification model (e.g., logistic regression or decision tree) using the cleaned dataset and saves it as `model.pkl`. |
+| **evaluate_model** | `PythonOperator` | Evaluates the trained model’s performance and logs the accuracy. |
+| **end** | `EmptyOperator` | Marks the end of the DAG execution. |
+
+All operators are connected sequentially to ensure data flows through the pipeline stages in order.
 
 ---
 
