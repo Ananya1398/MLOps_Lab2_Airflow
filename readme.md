@@ -1,185 +1,72 @@
-A comprehensive guide to setting up, deploying, and triggering Apache Airflow DAGs on a virtual machine (VM). This walkthrough covers creating an Airflow environment, configuring the API, structuring folders, and setting up DAGs to run a sample Python script with email notifications.
+# Health Data ML Pipeline (Airflow)
+
+## Overview
+This project demonstrates how to use **Apache Airflow** to orchestrate a simple **machine learning workflow** for health data.  
+The pipeline automatically reads, cleans, trains, and evaluates a machine learning model using scheduled Airflow DAGs.
 
 ---
 
-## Step-by-Step Guide: Deploying and Triggering Airflow DAGs on a VM
-
-### 1. Create and Configure a VM
-1. **Create a Virtual Machine Instance**:
-   - Log in to your cloud provider and create a new VM instance with sufficient resources (e.g., 2 vCPUs, 4GB RAM) to handle Airflow.
-
-2. **Set Up Networking**:
-   - Go to **VPC Network** and add a firewall rule to allow HTTP (port 80) and custom Airflow webserver port (e.g., port 8080).
+## Prerequisites
+- Python 3.11+
+- pip
+- virtualenv
 
 ---
 
-### 2. Update and Install Necessary Packages
-After the VM is set up, SSH into it and update the system, then install necessary packages:
+## Steps to Run
+
+### 1. Create and Activate Virtual Environment
 ```bash
-sudo apt update
-sudo apt install python3-pip python3-venv python3-full -y
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-### 3. Set Up a Virtual Environment for Airflow
-1. **Create a Virtual Environment**:
-   ```bash
-   python3 -m venv airflow_new_venv
-   ```
-
-2. **Activate the Virtual Environment**:
-   ```bash
-   source airflow_new_venv/bin/activate
-   ```
-
-3. **Install Apache Airflow**:
-   ```bash
-   pip install apache-airflow
-   ```
-
-4. **Initialize the Airflow Database**:
-   ```bash
-   airflow db init
-   ```
-
----
-
-### 4. Start the Airflow Webserver and Scheduler
-To start Airflow, open two separate terminals and activate the virtual environment in each:
-
-1. **Terminal 1**: Start the Webserver
-   ```bash
-   source airflow_new_venv/bin/activate
-   airflow webserver --port 8080
-   ```
-
-2. **Terminal 2**: Start the Scheduler
-   ```bash
-   source airflow_new_venv/bin/activate
-   airflow scheduler
-   ```
-
-The Airflow web interface should now be accessible at `http://<VM-IP>:8080`.
-
----
-
-### 5. Enable the Airflow API
-To enable the Airflow API, configure the `airflow.cfg` file:
-1. Open the `airflow.cfg` file for editing:
-   ```bash
-   nano ~/airflow/airflow.cfg
-   ```
-2. Locate the `[api]` section and modify it to enable the API:
-   ```ini
-   [api]
-   auth_backend = airflow.api.auth.backend.basic_auth
-   ```
-
-### 6. Create an Airflow Admin User
-To authenticate with the API, create a user:
-```bash
-airflow users create \
-  --username yourusername \
-  --firstname yourname \
-  --lastname yourname \
-  --role Admin \
-  --email youremail
-```
-
----
-
-### 7. Set Up Folder Structure for Airflow Project
-1. In your Airflow directory, create folders for DAGs and requirements:
-   ```bash
-   mkdir dags
-   mkdir dags/src
-   touch requirements.txt
-   ```
-
-2. **Add Python Scripts for DAGs**:
-   - Place your DAG Python script, `my_dag.py`, in the `dags` folder.
-   - Place other required scripts, like `model_development.py` and `success_email.py`, in the `dags/src` folder.
-
-   Example structure:
-   ```plaintext
-   airflow/
-   ├── dags/
-   │   ├── my_dag.py
-   │   └── src/
-   │       ├── model_development.py
-   │       └── success_email.py
-   └── requirements.txt
-   ```
-
----
-
-### 8. Create and Edit DAG Files
-
-1. **Define DAG**:
-   Create and edit the `my_dag.py` DAG file:
-   ```bash
-   nano dags/my_dag.py
-   ```
-
-   Sample `my_dag.py` content:
-   ```python
-   Code added in files
-   ```
-
-2. **Additional Python Scripts**:
-   Edit and add any additional scripts required, such as `model_development.py` and `success_email.py`.
-
----
-
-### 9. Install Requirements
-If you have any specific Python packages listed in `requirements.txt`, install them with:
+### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-### 10. Trigger the DAG
-1. **Activate the Virtual Environment**:
-   ```bash
-   source airflow_new_venv/bin/activate
-   ```
-
-2. **Trigger the DAG Manually**:
-   ```bash
-   airflow dags trigger sample_dag
-   ```
-
-You should see logs confirming that the DAG `sample_dag` has been triggered. You can also monitor the DAG execution on the Airflow web interface.
-
----
-
-### 11. Run and Test the DAG Locally
-To test `my_dag.py` directly:
+### 3. Initialize Airflow
 ```bash
-python3 dags/my_dag.py
+airflow db init
 ```
 
-This command will run the script locally and can help debug any issues before deploying it fully to Airflow.
+### 4. Start Airflow in Standalone Mode
+```bash
+airflow standalone
+```
+This launches:
+- Webserver (port 8080)  
+- Scheduler  
+- Triggerer  
+- DAG Processor  
+
+A login password for the `admin` user will be shown in the terminal or in  
+`~/airflow/standalone_admin_password.txt`.
 
 ---
 
-### Recap of Key Commands
-1. **Create Virtual Environment**:
-   ```bash
-   python3 -m venv airflow_new_venv
-   source airflow_new_venv/bin/activate
-   ```
+### 5. Access the Airflow UI
+Open your browser and go to:
 
-2. **Initialize and Start Airflow**:
-   ```bash
-   airflow db init
-   airflow webserver --port 8080
-   airflow scheduler
-   ```
+[http://localhost:8080](http://localhost:8080)
 
-3. **Trigger DAG**:
-   ```bash
-   airflow dags trigger sample_dag
-   ```
+Login using the admin credentials displayed in your terminal.
 
-Now your Airflow environment should be fully set up on the VM, with your DAG files organized and triggered successfully.
+---
+
+### 6. Run the DAG
+1. In the Airflow UI, unpause the DAG named **`health_data_training_dag`**.  
+2. Click **Trigger DAG** to start execution.  
+3. Monitor task logs in the UI to see outputs from:
+   - Data cleaning  
+   - Model training  
+   - Model evaluation  
+
+---
+
+### 7. Outputs
+- **Cleaned Dataset:** `clean_health_data.csv`  
+- **Trained Model:** `model.pkl`  
+- Model accuracy is logged in the Airflow task output.
+
